@@ -1,0 +1,11 @@
+[package]
+name = "greetings"
+version = "1.1.0"
+authors = ["drrb", "paxromana96"]
+edition = '2018'
+exclude = ["**/*"]
+include = ["Cargo.toml", "src/*/rust/**/*"]
+
+[lib]
+crate-type = ['cdylib']
+path = 'src/main/rust/lib.rs'

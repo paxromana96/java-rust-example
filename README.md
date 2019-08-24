@@ -25,16 +25,16 @@ The best place to start looking at the examples is in the test code
 ([GreetingsTest.java](src/test/java/com/github/drrb/javarust/GreetingsTest.java)).
 The test contains lots of executable examples of calling into Rust code from
 Java.  From the test, you can navigate to the [Java code](src/main/java/com/github/drrb/javarust/Greetings.java)
-and the [Rust code](src/main/rust/com/github/drrb/javarust/lib/greetings.rs). The
+and the [Rust code](src/main/rust/lib.rs). The
 implementation is heavily commented to explain it.
 
 So far, it contains examples of the following (click the links to see!):
-- *[Arguments](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L45)*: passing simple arguments from Java to Rust ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L44) / [Rust side](src/main/rust/com/github/drrb/javarust/lib/greetings.rs#L81))
-- *[Return values](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L50)*: returning simple values from Rust to Java ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L49) / [Rust side](src/main/rust/com/github/drrb/javarust/lib/greetings.rs#L91))
-- *[Struct arguments](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L56)*: passing structs to Rust from Java ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L54) / [Rust side](src/main/rust/com/github/drrb/javarust/lib/greetings.rs#L100))
-- *[Returning structs (2 examples)](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L65)*: returning structs from Rust by value and by reference ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L71) / [Rust side](src/main/rust/com/github/drrb/javarust/lib/greetings.rs#L109))
-- *[Callbacks (3 examples)](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L80)*: passing callbacks to Rust that get called from the Rust code ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L84) / [Rust side](src/main/rust/com/github/drrb/javarust/lib/greetings.rs#L129))
-- *[Freeing memory](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L67)*: freeing memory allocated in Rust ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L114) / [Rust side](src/main/rust/com/github/drrb/javarust/lib/greetings.rs#L171))
+- *[Arguments](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L45)*: passing simple arguments from Java to Rust ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L44) / [Rust side](src/main/rust/lib.rs#L81))
+- *[Return values](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L50)*: returning simple values from Rust to Java ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L49) / [Rust side](src/main/rust/lib.rs#L91))
+- *[Struct arguments](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L56)*: passing structs to Rust from Java ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L54) / [Rust side](src/main/rust/lib.rs#L100))
+- *[Returning structs (2 examples)](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L65)*: returning structs from Rust by value and by reference ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L71) / [Rust side](src/main/rust/lib.rs#L109))
+- *[Callbacks (3 examples)](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L80)*: passing callbacks to Rust that get called from the Rust code ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L84) / [Rust side](src/main/rust/lib.rs#L129))
+- *[Freeing memory](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L67)*: freeing memory allocated in Rust ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L114) / [Rust side](src/main/rust/lib.rs#L171))
 
 ## Building and Running the Tests
 
