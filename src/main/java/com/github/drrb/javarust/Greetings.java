@@ -22,7 +22,7 @@ import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
 
 public interface Greetings extends Library {
-    String JNA_LIBRARY_NAME = "greetings";
+    String JNA_LIBRARY_NAME = "binning";
     NativeLibrary JNA_NATIVE_LIB = NativeLibrary.getInstance(JNA_LIBRARY_NAME);
     
     /**
@@ -32,7 +32,7 @@ public interface Greetings extends Library {
      * E.g. on OSX, the library needs to be in /darwin/libgreetings.dylib
      * 
      * In this project, the crate source lives in 
-     * src/main/rust/com/github/drrb/javarust/lib/lib.rs . During the build,
+     * src/main/rust/com/github/drrb/javarust/lib/greetings.rs . During the build,
      * Maven will run scripts/rust-compile.sh, which will compile the crate and
      * copy it into target/classes/&lt;platform-specific-name&gt;.
      */

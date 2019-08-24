@@ -31,5 +31,4 @@ public class Main {
         name = arguments.isEmpty() ? "World" : arguments.get(0);
         Greetings.INSTANCE.printGreeting(name);
     }
-    
 }
