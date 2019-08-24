@@ -15,9 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Create a library, not an executable binary
-#![crate_type = "dylib"]
-
 use std::ffi::{CStr,CString};
 use std::str;
 use std::mem;

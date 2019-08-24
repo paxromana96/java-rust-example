@@ -16,9 +16,10 @@
  */
 package com.github.drrb.javarust.build;
 
+import static java.util.Arrays.asList;
+
 import java.io.File;
 import java.io.IOException;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -26,10 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import static java.util.Arrays.asList;
 import java.util.Arrays;
-import static java.util.stream.Collectors.toList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,34 +37,24 @@ import java.util.Locale;
  * Provides the functionality to compile Rust crates
  * as a maven action.
  */
-public class CompileRustCrates {
+public class CargoBuild
+{
 
     private static final Date EPOCH = new Date(0);
     private static final Path RUST_OUTPUT_DIR = Paths.get("target", "rust-libs");
 
     public static void main(String[] args) throws Exception {
-        Paths.get("target", "rust-libs").toFile().mkdirs();
-        if (changesDetected()) {
-            System.out.println("Changes detected. Compiling all Rust crates!");
-            crates().forEach(CompileRustCrates::compile);
-        } else {
-            System.out.println("No changes detected. Not recompiling Rust crates.");
-        }
+        RUST_OUTPUT_DIR.toFile().mkdirs();
+        CargoBuild.compile();
     }
 
-    private static boolean changesDetected() throws IOException {
-        Date lastSourceChange = newestChange(rustSources());
-        Date lastCompilation = newestChange(compiledRustLibraries());
-        return lastSourceChange.getTime() > lastCompilation.getTime();
-    }
-
-    private static void compile(Path sourceFile) {
-        System.out.format("Compiling crate %s%n", sourceFile);
+    private static void compile() {
+        System.out.println("Compiling rust crate...");
         try {
-            Process process = rustcProcess(sourceFile).inheritIO().start();
+            Process process = cargoBuildProcess().inheritIO().start();
             process.waitFor();
             if (process.exitValue() != 0) {
-                throw new RuntimeException(String.format("rustc exited nonzero (status code = %s)", process.exitValue()));
+                throw new RuntimeException(String.format("cargo exited nonzero (status code = %s)", process.exitValue()));
             }
             for (Path compiledRustLibrary : compiledRustLibraries()) {
                 moveLibIntoClasspath(compiledRustLibrary);
@@ -76,13 +64,13 @@ public class CompileRustCrates {
         }
     }
 
-    private static ProcessBuilder rustcProcess(Path crateFile) {
+    private static ProcessBuilder cargoBuildProcess() {
         List<String> commandParts;
         if (inNetbeans() && new File("/bin/bash").isFile()) {
-            System.out.println("(running rustc via bash because we're in NetBeans)");
-            commandParts = asList("/bin/bash", "-lc", String.format("rustc --out-dir %s %s", RUST_OUTPUT_DIR, crateFile));
+            System.out.println("(running cargo via bash because we're in NetBeans)");
+            commandParts = asList("/bin/bash", "-lc", String.format("cargo build --target-dir %s", RUST_OUTPUT_DIR));
         } else {
-            commandParts = asList("rustc", "--out-dir", RUST_OUTPUT_DIR.toString(), crateFile.toString());
+            commandParts = asList("cargo", "build", "--target-dir", RUST_OUTPUT_DIR.toString());
         }
         System.out.format("Running command: %s%n", commandParts);
         return new ProcessBuilder(commandParts);
@@ -105,22 +93,6 @@ public class CompileRustCrates {
 
     private static String osArchName() {
         return Os.getCurrent().jnaArchString();
-    }
-
-    private static List<Path> crates() throws IOException {
-        return rustSources().stream()
-                .filter(CompileRustCrates::isCrate)
-                .collect(toList());
-    }
-
-    private static List<Path> rustSources() throws IOException {
-        return findFiles(Paths.get("src", "main", "rust"), new FileFinder() {
-
-            @Override
-            protected boolean accept(Path file, BasicFileAttributes attrs) {
-                return isRustSource(file, attrs);
-            }
-        });
     }
 
     private static List<Path> compiledRustLibraries() throws IOException {
@@ -148,42 +120,11 @@ public class CompileRustCrates {
                 });
     }
 
-    private static boolean isRustSource(Path path, BasicFileAttributes attributes) {
-        return attributes.isRegularFile() && path.toString().endsWith(".rs");
-    }
-
-    private static boolean isCrate(Path path) {
-        try {
-            return path.toFile().isFile()
-                    && path.toString().endsWith(".rs")
-                    && new String(Files.readAllBytes(path), UTF_8).contains("#![crate_type");
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
     private static boolean isDylib(Path path, BasicFileAttributes attributes) {
         String pathString = path.toString();
         String pathExtension = pathString.substring(pathString.lastIndexOf("."));
         List<String> dylibExtensions = asList(".dylib", ".so", ".dll");
         return attributes.isRegularFile() && dylibExtensions.contains(pathExtension);
-    }
-
-    private static Date newestChange(List<Path> paths) {
-        return paths.stream()
-                .map(CompileRustCrates::mtime)
-                .max(Comparator.comparingLong(Date::getTime))
-                .orElse(EPOCH);
-    }
-
-    @SuppressWarnings("CallToPrintStackTrace")
-    private static Date mtime(Path path) {
-        try {
-            return new Date(Files.getLastModifiedTime(path).toMillis());
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return EPOCH;
-        }
     }
 
     private enum Os {
