@@ -163,6 +163,13 @@ pub extern fn renderGreetings() -> Box<GreetingSet> {
     })
 }
 
+#[test]
+#[allow(non_snake_case)]
+pub fn test_renderGreetings() {
+    let greeting_set = renderGreetings();
+    assert_eq!(2, greeting_set.greetings.len());
+}
+
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern fn dropGreeting(_: Box<Greeting>) {
@@ -181,6 +188,14 @@ pub extern fn dropGreetingSet(_: Box<GreetingSet>) {
 fn to_string(pointer: *const c_char) -> String {
     let slice = unsafe { CStr::from_ptr(pointer).to_bytes() };
     str::from_utf8(slice).unwrap().to_string()
+}
+
+#[test]
+fn test_to_string() {
+    // see the warning in https://doc.rust-lang.org/std/ffi/struct.CStr.html#method.as_ptr
+    let text = CString::new("Hello, world!").expect("CString::new failed");
+    let c_text: *const c_char = text.as_ptr();
+    assert_eq!("Hello, world!".to_string(), to_string(c_text));
 }
 
 /// Convert a Rust string to a native string

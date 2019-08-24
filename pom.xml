@@ -139,6 +139,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <mainClass>com.github.drrb.javarust.build.CargoBuild</mainClass>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>test-rust-crates</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Note that this requires cargo being on the $PATH -->
+                            <executable>cargo</executable>
+                            <arguments>test</arguments>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
@@ -171,5 +183,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </plugin>
         </plugins>
     </build>
-
 </project>
