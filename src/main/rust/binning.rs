@@ -75,7 +75,6 @@ pub enum BinIndex {
 impl Histogram {
     pub fn count(self: &mut Histogram, datum: f64) {
         let idx = self.get_bin_index(datum);
-        print!("Accessing at index {:?}: {} -> ", idx, self[idx].count);
         self[idx].increment();
     }
 
@@ -130,18 +129,19 @@ impl Histogram {
         }
     }
 
-    pub fn new(left: f64, num_bins: usize, right: f64) -> Histogram {
-        Histogram {
-            left: left,
-            right: right,
-            underflow: Bin::empty(),
-            overflow: Bin::empty(),
-            numBins: num_bins.try_into().unwrap(),
-            bins: std::iter::repeat_with(Bin::empty)
-                .take(num_bins)
-                .collect::<Vec<_>>()
-                .as_mut_ptr(),
-        }
+    pub fn new(left: f64, num_bins: usize, right: f64) -> (Histogram, Vec<Bin>) {
+        let mut bins: Vec<Bin> = std::iter::repeat_with(Bin::empty).take(num_bins).collect();
+        (
+            Histogram {
+                left: left,
+                right: right,
+                underflow: Bin::empty(),
+                overflow: Bin::empty(),
+                numBins: num_bins.try_into().unwrap(),
+                bins: bins.as_mut_ptr(),
+            },
+            bins,
+        )
     }
 }
 
@@ -199,14 +199,14 @@ pub extern "C" fn count_sample(hist: &mut Histogram, sample: f64) {
 
 #[test]
 fn test_count_underflow() {
-    let mut hist = Histogram::new(0.0, 5, 5.0);
+    let (mut hist, _bins) = Histogram::new(0.0, 5, 5.0);
     count_sample(&mut hist, -1.0);
     assert_eq!(1, hist.underflow.count);
 }
 
 #[test]
 fn test_count_overflow() {
-    let mut hist = Histogram::new(0.0, 5, 5.0);
+    let (mut hist, _bins) = Histogram::new(0.0, 5, 5.0);
     count_sample(&mut hist, 6.0);
     assert_eq!(1, hist.overflow.count);
 }
@@ -218,7 +218,7 @@ fn test_bin_linear_dataset() {
         samples: data.as_ptr(),
         numSamples: data.len() as i32,
     };
-    let mut hist = Histogram::new(0.0, 5, 5.0);
+    let (mut hist, _bins) = Histogram::new(0.0, 5, 5.0);
     bin(&dataset, &mut hist);
 
     assert_eq!(1, hist.underflow.count);

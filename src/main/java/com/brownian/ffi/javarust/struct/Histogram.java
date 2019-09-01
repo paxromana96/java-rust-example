@@ -44,4 +44,17 @@ public class Histogram extends Structure {
 	public String toString() {
 		return String.format("%s %s %s", this.underflow, Arrays.toString(bins.toArray(this.numBins)), this.overflow);
 	}
+
+	public Bin getBin(double datum, Bin[] mainBins) {
+		if (datum < left) return underflow;
+		if (datum > right) return overflow;
+		return mainBins[(int)((datum - left) / (right - left))];
+	}
+
+	public void bin(double[] data ) {
+		Bin[] mainBins = getBins();
+		for (double datum : data) {
+			getBin(datum, mainBins).count++;
+		}
+	}
 }
