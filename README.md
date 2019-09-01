@@ -36,6 +36,8 @@ So far, it contains examples of the following (click the links to see!):
 - *[Callbacks (3 examples)](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L80)*: passing callbacks to Rust that get called from the Rust code ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L84) / [Rust side](src/main/rust/greetings.rs#L129))
 - *[Freeing memory](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L67)*: freeing memory allocated in Rust ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L114) / [Rust side](src/main/rust/greetings.rs#L171))
 
+For help dealing with passing more-complicated structures and arrays, please see [this wonderful example](https://www.eshayne.com/jnaex/index.html).
+
 ## Building and Running the Tests
 
 To build the project, and run the tests, use Maven. This will build a jar

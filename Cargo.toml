@@ -9,6 +9,3 @@ include = ["Cargo.toml", "src/*/rust/**/*"]
 [lib]
 crate-type = ['dylib']
 path = 'src/main/rust/lib.rs'
-
-[dev-dependencies]
-rand = "0.7.0"

@@ -7,14 +7,15 @@ import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
 
-public interface Binning extends Library
-{
+public interface Binning extends Library {
 	String JNA_LIBRARY_NAME = "binning";
 	NativeLibrary JNA_NATIVE_LIB = NativeLibrary.getInstance(JNA_LIBRARY_NAME);
 
 	Binning INSTANCE = Native.loadLibrary(JNA_LIBRARY_NAME, Binning.class);
 
-	void bin(DataSet sample, Histogram histogram);
+	void bin(DataSet.ByReference sample, Histogram.ByReference histogram);
 	void increment(Bin bin);
-	void count_sample(Histogram hist, double sample);
+	void count_sample(Histogram .ByReference hist, double sample);
+	void increment_all(Bin[] bin, int num_bins);
+	double sum_samples(DataSet.ByReference dataset);
 }
