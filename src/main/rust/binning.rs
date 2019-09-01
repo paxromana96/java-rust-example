@@ -16,7 +16,7 @@
  */
 
 use std::convert::TryInto; // introduces try_into() for converting i32 -> usize / usize -> isize
-use std::ops::{Index, IndexMut};
+use std::ops::Index;
 
 // Corresponds to com.brownian.ffi.javarust.struct.DataSet
 // Marked with repr(C), like all JNI structs,
@@ -65,68 +65,51 @@ pub struct Histogram {
     bins: *mut Bin, // necessary in order to accept an array from Java
 }
 
-#[derive(Debug, Copy, Clone)]
-pub enum BinIndex {
-    Underflow,
-    Bin(usize),
-    Overflow,
-}
-
 impl Histogram {
     pub fn count(self: &mut Histogram, datum: f64) {
-        let idx = self.get_bin_index(datum);
-        self[idx].increment();
+        let main_bins = self.get_bins_mut();
+        self.get_bin_mut(main_bins, datum).increment();
+    }
+
+    pub fn count_all(self: &mut Histogram, data: &[f64]) {
+        let main_bins = self.get_bins_mut();
+        for &datum in data {
+            self.get_bin_mut(main_bins, datum).increment();
+        }
+    }
+
+    fn get_bin_mut<'a>(&'a mut self, main_bins: &'a mut [Bin], datum: f64) -> &'a mut Bin {
+        if datum < self.left {
+            &mut self.underflow
+        } else if datum >= self.right {
+            &mut self.overflow
+        } else {
+            let index: usize = ((datum - self.left) / self.get_bin_width()) as usize;
+            &mut main_bins[index]
+        }
     }
 
     pub fn get_bins<'a>(self: &'a Histogram) -> &'a [Bin] {
         unsafe { std::slice::from_raw_parts(self.bins, self.numBins.try_into().unwrap()) }
     }
 
-    pub fn get_bins_mut<'a>(self: &'a mut Histogram) -> &'a mut [Bin] {
+    fn get_bins_mut<'a, 'b>(self: &mut Histogram) -> &'b mut [Bin] {
         unsafe { std::slice::from_raw_parts_mut(self.bins, self.numBins.try_into().unwrap()) }
     }
 
-    pub fn get_bin_mut<'a>(self: &'a mut Histogram, bin_index: BinIndex) -> Option<&'a mut Bin> {
-        match bin_index {
-            BinIndex::Underflow => Some(&mut (self.underflow)),
-            BinIndex::Overflow => Some(&mut (self.overflow)),
-            BinIndex::Bin(index) => {
-                if index >= self.numBins.try_into().unwrap() {
-                    None
-                } else {
-                    Some(&mut self.get_bins_mut()[index])
-                }
-            }
-        }
-    }
-
-    pub fn get_bin<'a>(self: &'a Histogram, bin_index: BinIndex) -> Option<&'a Bin> {
-        match bin_index {
-            BinIndex::Underflow => Some(&(self.underflow)),
-            BinIndex::Overflow => Some(&(self.overflow)),
-            BinIndex::Bin(index) => {
-                if index >= self.numBins.try_into().unwrap() {
-                    None
-                } else {
-                    Some(&self.get_bins()[index])
-                }
-            }
+    pub fn get_bin<'a>(self: &'a Histogram, datum: f64) -> &'a Bin {
+        if datum < self.left {
+            &self.underflow
+        } else if datum >= self.right {
+            &self.overflow
+        } else {
+            let index: usize = ((datum - self.left) / self.get_bin_width()) as usize;
+            &self.get_bins()[index]
         }
     }
 
     pub fn get_bin_width(self: &Histogram) -> f64 {
         (self.right - self.left) / (self.numBins as f64)
-    }
-
-    pub fn get_bin_index(self: &Histogram, datum: f64) -> BinIndex {
-        if datum < self.left {
-            BinIndex::Underflow
-        } else if datum >= self.right {
-            BinIndex::Overflow
-        } else {
-            let index: usize = ((datum - self.left) / self.get_bin_width()) as usize;
-            BinIndex::Bin(index)
-        }
     }
 
     pub fn new(left: f64, num_bins: usize, right: f64) -> (Histogram, Vec<Bin>) {
@@ -145,17 +128,11 @@ impl Histogram {
     }
 }
 
-impl Index<BinIndex> for Histogram {
+impl Index<f64> for Histogram {
     type Output = Bin;
 
-    fn index(&self, bin_index: BinIndex) -> &Self::Output {
-        self.get_bin(bin_index).unwrap()
-    }
-}
-
-impl IndexMut<BinIndex> for Histogram {
-    fn index_mut(&mut self, bin_index: BinIndex) -> &mut Self::Output {
-        self.get_bin_mut(bin_index).unwrap()
+    fn index(&self, datum: f64) -> &Self::Output {
+        self.get_bin(datum)
     }
 }
 
@@ -163,9 +140,7 @@ impl IndexMut<BinIndex> for Histogram {
 pub extern "C" fn bin(dataset: &DataSet, hist: &mut Histogram) {
     let samples_ref: &[f64] = dataset.get_samples();
 
-    for &sample in samples_ref.iter() {
-        hist.count(sample)
-    }
+    hist.count_all(samples_ref);
 }
 
 #[no_mangle]
@@ -222,11 +197,11 @@ fn test_bin_linear_dataset() {
     bin(&dataset, &mut hist);
 
     assert_eq!(1, hist.underflow.count);
-    assert_eq!(1, hist[BinIndex::Bin(0)].count);
-    assert_eq!(2, hist[BinIndex::Bin(1)].count);
-    assert_eq!(0, hist[BinIndex::Bin(2)].count);
-    assert_eq!(3, hist[BinIndex::Bin(3)].count);
-    assert_eq!(1, hist[BinIndex::Bin(4)].count);
+    assert_eq!(1, hist.get_bins()[0].count);
+    assert_eq!(2, hist.get_bins()[1].count);
+    assert_eq!(0, hist.get_bins()[2].count);
+    assert_eq!(3, hist.get_bins()[3].count);
+    assert_eq!(1, hist.get_bins()[4].count);
     assert_eq!(1, hist.overflow.count);
 }
 

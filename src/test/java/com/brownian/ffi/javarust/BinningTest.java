@@ -142,7 +142,7 @@ public class BinningTest {
 		benchmark_java_binning_vs_rust(1000, 10000);
 		// benchmark_java_binning_vs_rust(10, 10000);
 
-		benchmark_java_binning_vs_rust(100, 100000);
+		benchmark_java_binning_vs_rust(1000, 100000);
 	}
 
 	public void benchmark_java_binning_vs_rust(int numRepititions, int numSamples) {
@@ -155,13 +155,31 @@ public class BinningTest {
 		long javaStartTime = System.currentTimeMillis();
 		{
 			for (int i = 0 ; i < numRepititions; i++) {
-				Histogram jhist = new Histogram(0.0, 20, 1.0);
-				jhist.bin(randomData);
+				Histogram hist = new Histogram(0.0, 20, 1.0);
+				hist.binSimple(randomData);
 			}
 		}
 		long javaEndTime = System.currentTimeMillis();
 		long javaDuration = javaEndTime - javaStartTime;
 
+		randomData = DoubleStream.generate(Math::random)
+		             .map(d -> 1.05 * Math.sin((d - 0.5) * Math.PI) / 2)
+		             .limit(numSamples)
+		             .toArray();
+		long javaStreamStartTime = System.currentTimeMillis();
+		{
+			for (int i = 0 ; i < numRepititions; i++) {
+				Histogram hist = new Histogram(0.0, 20, 1.0);
+				hist.binStreams(randomData);
+			}
+		}
+		long javaStreamEndTime = System.currentTimeMillis();
+		long javaStreamDuration = javaStreamEndTime - javaStreamStartTime;
+
+		randomData = DoubleStream.generate(Math::random)
+		             .map(d -> 1.05 * Math.sin((d - 0.5) * Math.PI) / 2)
+		             .limit(numSamples)
+		             .toArray();
 		long rustStartTime = System.currentTimeMillis();
 		{
 			for (int i = 0 ; i < numRepititions; i++) {
@@ -173,6 +191,10 @@ public class BinningTest {
 		long rustEndTime = System.currentTimeMillis();
 		long rustDuration = rustEndTime - rustStartTime;
 
+		randomData = DoubleStream.generate(Math::random)
+		             .map(d -> 1.05 * Math.sin((d - 0.5) * Math.PI) / 2)
+		             .limit(numSamples)
+		             .toArray();
 		DataSet.ByReference noCopyDataSet = new DataSet.ByReference(randomData);
 		long rustNoCopyStartTime = System.currentTimeMillis();
 		{
@@ -185,11 +207,15 @@ public class BinningTest {
 		long rustNoCopyDuration = rustNoCopyEndTime - rustNoCopyStartTime;
 
 		System.out.printf("Binning %d samples with %d iterations:%n"
-		                  + "Java:      %6.3fs: %3.3f ms each iteration, %3.3f us each sample%n"
-		                  + "Rust:      %6.3fs: %3.3f ms each iteration, %3.3f us each sample%n"
+		                  + "Java:%n"
+		                  + "  simple:  %6.3fs: %3.3f ms each iteration, %3.3f us each sample%n"
+		                  + "  streams: %6.3fs: %3.3f ms each iteration, %3.3f us each sample%n"
+		                  + "Rust:%n"
+		                  + "  naive:   %6.3fs: %3.3f ms each iteration, %3.3f us each sample%n"
 		                  + "  no copy: %6.3fs: %3.3f ms each iteration, %3.3f us each sample%n%n",
 		                  numSamples, numRepititions,
 		                  javaDuration / 1000.0, ((double) javaDuration) / numRepititions, 1000.0 * javaDuration / numRepititions / numSamples,
+		                  javaStreamDuration / 1000.0, ((double) javaStreamDuration) / numRepititions, 1000.0 * javaStreamDuration / numRepititions / numSamples,
 		                  rustDuration / 1000.0, ((double) rustDuration) / numRepititions, 1000.0 * rustDuration / numRepititions / numSamples,
 		                  rustNoCopyDuration / 1000.0, ((double) rustNoCopyDuration) / numRepititions, 1000.0 * rustNoCopyDuration / numRepititions / numSamples);
 		// assertTrue("Java was faster than Rust with " + numSamples + " samples and " + numRepititions + " repititions",

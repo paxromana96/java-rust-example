@@ -51,10 +51,30 @@ public class Histogram extends Structure {
 		return mainBins[(int)((datum - left) / (right - left))];
 	}
 
-	public void bin(double[] data ) {
+	public void binSimple(double[] data ) {
 		Bin[] mainBins = getBins();
 		for (double datum : data) {
 			getBin(datum, mainBins).count++;
 		}
+	}
+
+	public void binInline(double[] data ) {
+		Bin[] mainBins = getBins();
+		for (double datum : data) {
+			if (datum < left) {
+				underflow.count++;
+			} else if (datum > right) {
+				overflow.count++;
+			} else {
+				mainBins[(int)((datum - left) / (right - left))].count++;
+			}
+		}
+	}
+
+	public void binStreams(double [] data) {
+		final Bin[] mainBins = getBins();
+		Arrays.stream(data)
+		.mapToObj(datum -> getBin(datum, mainBins))
+		.forEach(bin -> bin.count++);
 	}
 }
