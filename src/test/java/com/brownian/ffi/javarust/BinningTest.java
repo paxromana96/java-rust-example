@@ -139,8 +139,10 @@ public class BinningTest {
 		// benchmark_java_binning_vs_rust(100, 1000);
 		// benchmark_java_binning_vs_rust(10, 1000);
 
-		benchmark_java_binning_vs_rust(100, 10000);
+		benchmark_java_binning_vs_rust(1000, 10000);
 		// benchmark_java_binning_vs_rust(10, 10000);
+
+		benchmark_java_binning_vs_rust(100, 100000);
 	}
 
 	public void benchmark_java_binning_vs_rust(int numRepititions, int numSamples) {
