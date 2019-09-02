@@ -220,3 +220,35 @@ fn test_sum_samples() {
     };
     assert_eq!(sum, sum_samples(&dataset));
 }
+
+#[cfg(test)]
+mod bench_tests {
+    use super::*;
+    use std::time::Instant;
+
+    #[test]
+    fn bench_random_bins() {
+        let random_data: Vec<f64> = std::iter::successors(Some(-0.01), |n| Some(n + 0.01))
+            .take(10000)
+            .collect();
+        let data_set = DataSet {
+            samples: random_data.as_ptr(),
+            numSamples: random_data.len().try_into().unwrap(),
+        };
+
+        let (mut hist, _bins) = Histogram::new(0.0, 100, 99.0);
+        let start_time = Instant::now();
+        for _ in 0..1000 {
+            bin(&data_set, &mut hist);
+        }
+        let end_time = Instant::now();
+        let duration = end_time - start_time;
+        println!(
+            "Duration: {:?}s, per iter: {:?}ms, per sample: {:?}us",
+            (duration.as_millis() as f32) / 1000.0,
+            (duration.as_millis() as f32) / 1000.0,
+            (duration.as_millis() as f32) / 10000.0
+        );
+        println!("{:?}", hist.get_bins()[3].count); // to avoid optimizing it away
+    }
+}
